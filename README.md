@@ -39,7 +39,7 @@ pip install --no-deps -e ../candel-pv
 Data, results and the machine-local `local_config.toml` live in the CANDEL
 checkout. Python code finds it through the installed `candel`
 (`candel.util.CANDEL_ROOT`); shell scripts use `$CANDEL_ROOT`, defaulting to
-`../CANDEL`.
+`../candel`.
 
 ## Layout
 
@@ -58,7 +58,7 @@ checkout. Python code finds it through the installed `candel`
 ## Run
 
 ```bash
-python ../CANDEL/scripts/runs/main.py --config configs/config.toml
+python ../candel/scripts/runs/main.py --config configs/config.toml
 ```
 
 Batch grids are defined in `candel_pv/specs.py` and built with the core's
