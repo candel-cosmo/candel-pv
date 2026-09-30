@@ -1,28 +1,17 @@
 # Copyright (C) 2025 Richard Stiskalek
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-# Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Licensed under the MIT License; see LICENSE in the repository root.
 """Pantheon+ forward model."""
 import jax.numpy as jnp
 from numpyro import factor, plate, sample
 from numpyro.distributions import MultivariateNormal, Uniform
 
-from ..util import fprint
+from candel.util import fprint
 from .base_pv import BasePVModel, field_product_logmeanexp
-from .pv_utils import (add_sigma_mag_to_lane_cov, lp_galaxy_bias, rsample,
-                       sample_distance_prior_volume, sample_galaxy_bias,
-                       sigma_v_from_density)
-from .utils import normal_logpdf_var, predict_cz, student_t_logpdf_var
+from candel.model.pv_utils import (add_sigma_mag_to_lane_cov, lp_galaxy_bias,
+                                   rsample, sample_distance_prior_volume,
+                                   sample_galaxy_bias, sigma_v_from_density)
+from candel.model.utils import (normal_logpdf_var, predict_cz,
+                                student_t_logpdf_var)
 
 
 class PantheonPlusModel(BasePVModel):
@@ -100,7 +89,6 @@ class PantheonPlusModel(BasePVModel):
         bias_params = sample_galaxy_bias(
             self.priors, self.galaxy_bias, shared_params,
             Om=self.Om, beta=beta)
-        Mmiss = self._sample_Mmiss(shared_params)
         self._validate_volume_normalized_prior_data(data)
 
         # h is fixed, and the radial grid provides the maximum latent distance.
@@ -149,21 +137,12 @@ class PantheonPlusModel(BasePVModel):
         Vrad = beta * data.f_los_velocity(r)
         delta_at_r = data.f_los_delta(r)
         log_density_at_r = data.f_los_log_density(r)
-        if Mmiss is not None:
-            delta_missing, velocity_missing = \
-                self._Mmiss_at_distance_terms(data, r, Mmiss)
-            rho_at_r = jnp.exp(log_density_at_r) + delta_missing[None, :]
-            rho_at_r = jnp.maximum(rho_at_r, 1e-8)
-            delta_at_r = rho_at_r - 1.0
-            log_density_at_r = jnp.log(rho_at_r)
-            Vrad = Vrad + velocity_missing[None, :]
         lp_dist += lp_galaxy_bias(
             delta_at_r, log_density_at_r,
             bias_params, self.galaxy_bias,
             self.quadratic_bias_delta0)
         lp_dist -= self._compute_volume_log_N(
-            data, kwargs_dist, bias_params,
-            Mmiss=Mmiss)[:, None]
+            data, kwargs_dist, bias_params)[:, None]
 
         # Predicted redshift, `(n_field, n_galaxies)`
         czpred = predict_cz(

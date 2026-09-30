@@ -1,27 +1,15 @@
 # Copyright (C) 2025 Richard Stiskalek
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-# Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Licensed under the MIT License; see LICENSE in the repository root.
 """TFR (Tully-Fisher relation) forward model."""
 import jax.numpy as jnp
 from jax.scipy.special import logsumexp
 from numpyro import factor, plate, sample
 from numpyro.distributions import Normal, Uniform
 
-from ..util import fprint
+from candel.util import fprint
 from .base_pv import BasePVModel
-from .pv_utils import (gauss_hermite_log_weights, get_absmag_TFR,
-                       log_p_S_TFR_eta, rsample)
+from candel.model.pv_utils import (gauss_hermite_log_weights, get_absmag_TFR,
+                                   log_p_S_TFR_eta, rsample)
 
 
 class TFRModel(BasePVModel):
@@ -64,7 +52,7 @@ class TFRModel(BasePVModel):
         a_TFR_dipole = rsample(
             "zeropoint_dipole", self.priors["zeropoint_dipole"], shared_params)
         a_TFR = a_TFR + jnp.sum(a_TFR_dipole * data["rhat"], axis=1)
-        kwargs_dist, h, Vext, sigma_v, beta, bias_params, nu_cz, Mmiss = \
+        kwargs_dist, h, Vext, sigma_v, beta, bias_params, nu_cz = \
             self._sample_common_params(shared_params)
 
         if data.sample_dust:
@@ -115,8 +103,7 @@ class TFRModel(BasePVModel):
             r_grid = data["r_grid"] / h
 
             lp_dist, Vrad, delta_los = self._setup_lp_dist_and_Vrad(
-                data, r_grid, kwargs_dist, beta, bias_params,
-                Mmiss=Mmiss)
+                data, r_grid, kwargs_dist, beta, bias_params)
 
             ll_cz = self._compute_ll_cz(
                 data, r_grid, h, Vext, sigma_v, Vrad, nu_cz=nu_cz,

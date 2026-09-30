@@ -1,17 +1,5 @@
 # Copyright (C) 2025 Richard Stiskalek
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-# Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Licensed under the MIT License; see LICENSE in the repository root.
 """
 Data loading and preprocessing utilities for peculiar-velocity catalogues.
 
@@ -22,27 +10,27 @@ import numpy as np
 from jax import core as jcore
 from jax import numpy as jnp
 
-from ..model.integration import simpson_log_weights
-from ..model.interp import LOSInterpolator
-from ..util import (SPEED_OF_LIGHT, fprint, fsection, load_config,
-                    radec_to_cartesian)
-from .angular_scatter import (angular_position_scatter_from_config,
-                              catalogue_scatter_from_config,
-                              scatter_data_coordinates)
+from candel.model.integration import simpson_log_weights
+from candel.model.interp import LOSInterpolator
+from candel.util import (SPEED_OF_LIGHT, fprint, fsection, load_config,
+                         radec_to_cartesian)
+from candel.field.angular_scatter import (angular_position_scatter_from_config,
+                                          catalogue_scatter_from_config,
+                                          scatter_data_coordinates)
 from .catalogues import _CATALOGUE_LOADERS, load_CF4_data, load_CF4_mock
-from .field_cache import (_field_cache_dir_from_config,
-                          _field_cache_enabled_from_config,
-                          _field_cache_project_from_config)
-from .field_products import (field_smoothing_scale_from_config,
-                             resolve_or_build_los_data_path,
-                             velocity_field_smoothing_scale_from_config)
-from .los import _compute_r_grid, precompute_pixel_projection
-from .volume_density import (_load_volume_density_3d_fields,
-                             _prepare_pv_volume_density_arrays,
-                             _reconstruction_omega_m,
-                             _validate_voxel_subsample_fraction,
-                             _validate_voxel_subsample_seed,
-                             _volume_density_mode)
+from candel.field.field_cache import (_field_cache_dir_from_config,
+                                      _field_cache_enabled_from_config,
+                                      _field_cache_project_from_config)
+from candel.field.field_products import (
+    field_smoothing_scale_from_config, resolve_or_build_los_data_path,
+    velocity_field_smoothing_scale_from_config)
+from candel.field.los import _compute_r_grid, precompute_pixel_projection
+from candel.field.volume_density import (_load_volume_density_3d_fields,
+                                         _prepare_pv_volume_density_arrays,
+                                         _reconstruction_omega_m,
+                                         _validate_voxel_subsample_fraction,
+                                         _validate_voxel_subsample_seed,
+                                         _volume_density_mode)
 
 
 def load_PV_dataframes(config_path):
@@ -403,7 +391,6 @@ class PVDataFrame:
             galaxy_bias = config_pv_model.get("galaxy_bias", "unity")
             geometry = config_pv_model.get("density_3d_geometry", "cube")
             radius = config_pv_model.get("density_3d_radius", None)
-            store_rhat_3d = bool(config_pv_model.get("use_Mmiss", False))
             if geometry not in ("cube", "sphere"):
                 raise ValueError(
                     "`pv_model.density_3d_geometry` must be 'cube' or "
@@ -441,7 +428,7 @@ class PVDataFrame:
                 cache_enabled=field_cache_enabled,
                 geometry=geometry,
                 radius=radius,
-                store_rhat_3d=store_rhat_3d,
+                store_rhat_3d=False,
                 voxel_subsample_fraction=voxel_subsample_fraction,
                 voxel_subsample_seed=voxel_subsample_seed,
                 field_smoothing_scale=field_smoothing_scale)

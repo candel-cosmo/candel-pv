@@ -1,7 +1,7 @@
 import numpy as np
 from jax.scipy.special import logsumexp
 
-from candel.model.base_pv import field_product_logmeanexp
+from candel_pv.base_pv import field_product_logmeanexp
 
 
 def test_field_product_logmeanexp_products_objects_before_field_average():

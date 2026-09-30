@@ -1,8 +1,5 @@
 # Copyright (C) 2025 Richard Stiskalek
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
+# Licensed under the MIT License; see LICENSE in the repository root.
 """Reproduce the figures of the joint-S8 PV paper.
 
 Reads MCMC runs from ``results/S8`` and writes PDF figures + paper
@@ -19,7 +16,8 @@ from os.path import abspath, dirname, join
 
 def _heavy_imports():
     """Defer slow imports so ``--help`` returns instantly."""
-    global np, interp1d, plt, sns, File, candel, plot_corner_from_hdf5
+    global np, interp1d, plt, sns, File, candel, candel_pv
+    global plot_corner_from_hdf5
     global posterior_agreement
     global get_key_all, compute_S8_all, compute_fsigma8_lin_all
     global makedirs, exists, md5, sys_path
@@ -44,6 +42,7 @@ def _heavy_imports():
     from utils import compute_fsigma8_lin_all, compute_S8_all, get_key_all
 
     import candel  # noqa: F401
+    import candel_pv  # noqa: F401
     from candel.plotting.corner import plot_corner_from_hdf5  # noqa: F401
 
     # Re-bind into module globals for the rest of the script.
@@ -54,6 +53,7 @@ def _heavy_imports():
     g["sns"] = sns
     g["File"] = File
     g["candel"] = candel
+    g["candel_pv"] = candel_pv
     g["plot_corner_from_hdf5"] = plot_corner_from_hdf5
     g["posterior_agreement"] = posterior_agreement
     g["get_key_all"] = get_key_all
@@ -770,7 +770,7 @@ def main():
     # Primary bias: 'both' uses linear as primary; quadratic is overlaid.
     primary = "linear" if args.bias in ("linear", "both") else "quadratic"
     fnames, labels = load_per_survey(primary)
-    beta2cosmo = candel.cosmo.Beta2Cosmology()
+    beta2cosmo = candel_pv.Beta2Cosmology()
     attach_sr_interp(beta2cosmo)
 
     # Plots that need posteriors (beta/S8/fs8) — load lazily.

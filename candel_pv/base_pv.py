@@ -1,17 +1,5 @@
 # Copyright (C) 2025 Richard Stiskalek
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-# Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Licensed under the MIT License; see LICENSE in the repository root.
 """
 Base classes for peculiar velocity (PV) forward models.
 
@@ -23,24 +11,27 @@ part of the prior itself. Without a reconstruction, the analytic radial
 normalizer includes the full-sky angular factor because observed sky positions
 enter through delta-function angular likelihoods.
 """
+from os.path import splitext
+
 import jax.numpy as jnp
 from jax import lax
 from jax.scipy.special import gammaln, logsumexp
 from numpyro import deterministic, factor, handlers
 
-from ..util import fprint, get_nested
-from .base_model import ModelBase
-from .integration import simpson_log_weights
-from .pv_utils import (_rsample, compute_Vext_radial, convert_cartesian_frame,
-                       galaxy_bias_density_mode, lp_galaxy_bias,
-                       missing_mass_at_distance_delta_velocity,
-                       missing_mass_los_delta_velocity,
-                       missing_mass_volume_delta, rsample,
-                       sample_distance_prior_volume, sample_galaxy_bias,
-                       sample_Vext, sigma_v_from_density, spherical_rhat,
-                       sumzero_basis, validate_galaxy_bias)
-from .utils import (joint_config_mismatch, normal_logpdf_var, predict_cz,
-                    student_t_logpdf_var)
+from candel.plotting.corner import plot_corner, plot_Vext_rad_corner
+from .plotting import (plot_radial_profiles, plot_Vext_moll,
+                       plot_Vext_radial_bulkflow, plot_Vext_radmag)
+from candel.util import fprint, get_nested
+from candel.model.base_model import ModelBase
+from candel.model.integration import simpson_log_weights
+from candel.model.pv_utils import (_rsample, compute_Vext_radial,
+                                   galaxy_bias_density_mode, lp_galaxy_bias,
+                                   rsample, sample_distance_prior_volume,
+                                   sample_galaxy_bias, sample_Vext,
+                                   sigma_v_from_density, sumzero_basis,
+                                   validate_galaxy_bias)
+from candel.model.utils import (joint_config_mismatch, normal_logpdf_var,
+                                predict_cz, student_t_logpdf_var)
 
 LOG_4PI = jnp.log(4.0 * jnp.pi)
 
@@ -63,6 +54,53 @@ def field_product_logmeanexp(ll, num_fields):
     return logsumexp(jnp.sum(ll, axis=1), axis=0) - jnp.log(num_fields)
 
 
+def plot_pv_vext_outputs(model, samples, fname_out):
+    """Generate PV-specific velocity-field plots."""
+    plot_paths = []
+    if model.which_Vext == "radial":
+        fname_plot = splitext(fname_out)[0] + "_corner_Vext_rad.png"
+        plot_Vext_rad_corner(samples, show_fig=False, filename=fname_plot)
+        plot_paths.append(("Vext radial corner plot", fname_plot))
+
+        fname_plot = splitext(fname_out)[0] + "_profile_Vext_rad.png"
+        plot_radial_profiles(samples, model, show_fig=False,
+                             filename=fname_plot)
+        plot_paths.append(("Vext radial profile plot", fname_plot))
+
+        fname_plot = splitext(fname_out)[0] + "_bulkflow_Vext_rad.png"
+        plot_Vext_radial_bulkflow(
+            samples, model, show_fig=False, filename=fname_plot)
+        plot_paths.append(("Vext radial bulk-flow plot", fname_plot))
+    elif model.which_Vext == "radial_magnitude":
+        fname_plot = splitext(fname_out)[0] + "_profile_Vext_radmag.png"
+        plot_Vext_radmag(samples, model, show_fig=False, filename=fname_plot)
+        plot_paths.append(("Vext radial-magnitude profile plot", fname_plot))
+
+        fname_plot = splitext(fname_out)[0] + "_bulkflow_Vext_radmag.png"
+        plot_Vext_radial_bulkflow(
+            samples, model, show_fig=False, filename=fname_plot)
+        plot_paths.append(("Vext radial-magnitude bulk-flow plot",
+                           fname_plot))
+
+    if model.which_Vext == "per_pix":
+        npix = samples["Vext_pix"].shape[1]
+        if npix > 50:
+            fprint(f"Skipping corner plot of Vext_pix with {npix} pixels.")
+        else:
+            fname_plot = splitext(fname_out)[0] + "_corner_Vext_pix.png"
+            samples_Vext = {
+                f"Vext_pix_{i}": samples["Vext_pix"][:, i]
+                for i in range(npix)}
+            plot_corner(samples_Vext, show_fig=False, filename=fname_plot)
+            plot_paths.append(("Vext per-pixel corner plot", fname_plot))
+
+        fname_plot = splitext(fname_out)[0] + "_moll_Vext_pix.png"
+        plot_Vext_moll(samples["Vext_pix"], fname_plot)
+        plot_paths.append(("Vext per-pixel mollweide plot", fname_plot))
+
+    return plot_paths
+
+
 class BasePVModel(ModelBase):
     """
     Base class for Peculiar Velocity (PV) forward models.
@@ -72,11 +110,16 @@ class BasePVModel(ModelBase):
     reconstructed density/velocity fields or external dipoles.
 
     It handles:
-    - Loading PV-specific configuration (Vext models, galaxy bias, Mmiss).
+    - Loading PV-specific configuration (Vext models, galaxy bias).
     - Sampling shared velocity-field and missing-mass parameters.
     - Evaluating density-weighted empirical distance priors.
     - Integrating or evaluating likelihoods over line-of-sight distance.
     """
+
+    evidence_default = True
+
+    def extra_plots(self, samples, fname_out):
+        return plot_pv_vext_outputs(self, samples, fname_out)
 
     def __init__(self, config_path):
         super().__init__(config_path)
@@ -134,40 +177,6 @@ class BasePVModel(ModelBase):
             self.kwargs_Vext = {}
         else:
             raise ValueError(f"Invalid which_Vext '{self.which_Vext}'.")
-
-        self.use_Mmiss = bool(get_nested(config, "pv_model/use_Mmiss", False))
-        self.Mmiss_model = get_nested(
-            config, "pv_model/Mmiss_model", "gaussian_point")
-        self.Mmiss_sigma = float(get_nested(
-            config, "pv_model/Mmiss_sigma", 5.0))
-        self.Mmiss_coordinate_frame = get_nested(
-            config, "pv_model/Mmiss_coordinate_frame", "galactic")
-        self.Mmiss_growth_index = float(get_nested(
-            config, "pv_model/Mmiss_growth_index", 0.55))
-        if self.use_Mmiss:
-            if self.Mmiss_model != "gaussian_point":
-                raise ValueError(
-                    "`pv_model.Mmiss_model` currently supports only "
-                    "'gaussian_point'.")
-            if self.Mmiss_sigma <= 0.0:
-                raise ValueError(
-                    "`pv_model.Mmiss_sigma` must be positive.")
-            if self.Mmiss_coordinate_frame not in (
-                    "icrs", "galactic", "supergalactic"):
-                raise ValueError(
-                    "`pv_model.Mmiss_coordinate_frame` must be one "
-                    "of 'icrs', 'galactic', or 'supergalactic'.")
-            required = [
-                "logM_miss", "Mmiss_distance", "Mmiss_ell", "Mmiss_b"]
-            missing = [k for k in required if k not in priors]
-            if missing:
-                raise ValueError(
-                    "Missing priors for Mmiss model: "
-                    f"{', '.join(missing)}.")
-            fprint(
-                "using Gaussian Mmiss component "
-                f"(sigma={self.Mmiss_sigma:g} Mpc/h, "
-                f"frame={self.Mmiss_coordinate_frame}).")
 
         self._load_and_set_priors()
         self.marginalize_eta = get_nested(
@@ -282,64 +291,7 @@ class BasePVModel(ModelBase):
             bias_params = sample_galaxy_bias(
                 self.priors, self.galaxy_bias, shared_params,
                 Om=self.Om, beta=beta)
-        Mmiss = self._sample_Mmiss(shared_params)
-        return (kwargs_dist, h, Vext, sigma_v, beta, bias_params, nu_cz,
-                Mmiss)
-
-    def _sample_Mmiss(self, shared_params=None):
-        if not self.use_Mmiss:
-            return None
-
-        logM = rsample(
-            "logM_miss", self.priors["logM_miss"], shared_params)
-        distance = rsample(
-            "Mmiss_distance", self.priors["Mmiss_distance"], shared_params)
-        ell = rsample(
-            "Mmiss_ell", self.priors["Mmiss_ell"], shared_params)
-        b = rsample(
-            "Mmiss_b", self.priors["Mmiss_b"], shared_params)
-        rhat = spherical_rhat(ell, b)
-        return {
-            "logM": logM,
-            "distance": distance,
-            "rhat": rhat,
-        }
-
-    def _Mmiss_rhat(self, params, target_frame):
-        return convert_cartesian_frame(
-            params["rhat"], self.Mmiss_coordinate_frame, target_frame)
-
-    def _Mmiss_los_terms(self, data, r_grid, params):
-        rhat_cluster = self._Mmiss_rhat(params, "icrs")
-        Mmiss = 10.0**params["logM"]
-        return missing_mass_los_delta_velocity(
-            r_grid, data["rhat"], params["distance"], rhat_cluster,
-            Mmiss, self.Mmiss_sigma, self.Om,
-            growth_index=self.Mmiss_growth_index)
-
-    def _Mmiss_at_distance_terms(self, data, r, params):
-        rhat_cluster = self._Mmiss_rhat(params, "icrs")
-        Mmiss = 10.0**params["logM"]
-        return missing_mass_at_distance_delta_velocity(
-            r, data["rhat"], params["distance"], rhat_cluster,
-            Mmiss, self.Mmiss_sigma, self.Om,
-            growth_index=self.Mmiss_growth_index)
-
-    def _Mmiss_volume_delta(self, data, params):
-        required = ("rhat_x_3d", "rhat_y_3d", "rhat_z_3d")
-        if any(k not in data.keys() for k in required):
-            raise ValueError(
-                "Mmiss empirical prior requires 3D voxel directions; "
-                "load data with `pv_model.use_Mmiss = true` so the "
-                "volume normalizer stores them.")
-        frame = getattr(data, "coordinate_frame_3d", "icrs")
-        rhat_cluster = self._Mmiss_rhat(params, frame)
-        rhat_3d = jnp.stack([data[k] for k in required], axis=-1)
-        Mmiss = 10.0**params["logM"]
-        return missing_mass_volume_delta(
-            jnp.exp(data["log_r_3d"]), rhat_3d,
-            params["distance"], rhat_cluster, Mmiss,
-            self.Mmiss_sigma, self.Om)
+        return kwargs_dist, h, Vext, sigma_v, beta, bias_params, nu_cz
 
     def _get_simpson_log_w(self, data, r_grid):
         """Return pre-computed Simpson log weights, or compute on the fly."""
@@ -369,8 +321,7 @@ class BasePVModel(ModelBase):
                 "3D density representation does not match galaxy bias model: "
                 f"{density_mode} for {self.galaxy_bias}.")
 
-    def _compute_volume_log_N(self, data, kwargs_dist, bias_params,
-                              Mmiss=None):
+    def _compute_volume_log_N(self, data, kwargs_dist, bias_params):
         """Compute the empirical prior 3D normalizer per field realization."""
         self._validate_volume_normalized_prior_data(data)
 
@@ -383,17 +334,12 @@ class BasePVModel(ModelBase):
             data["log_volume_weight_3d"]
             if "log_volume_weight_3d" in data.keys()
             else 0.0)
-        delta_missing = None
-        if Mmiss is not None:
-            delta_missing = self._Mmiss_volume_delta(data, Mmiss)
 
         def _log_N_one(density_3d):
             if density_mode == "log_rho":
                 rho_3d = jnp.exp(density_3d)
             else:
                 rho_3d = 1.0 + density_3d
-            if delta_missing is not None:
-                rho_3d = rho_3d + delta_missing
             rho_3d = jnp.maximum(rho_3d, 1e-8)
             delta_3d = rho_3d - 1.0
             log_rho_3d = jnp.log(rho_3d)
@@ -434,7 +380,7 @@ class BasePVModel(ModelBase):
         return lp_los - log_N, Vrad, delta_los
 
     def _setup_lp_dist_and_Vrad(self, data, r_grid, kwargs_dist, beta,
-                                bias_params, Mmiss=None):
+                                bias_params):
         r"""Volume-normalized empirical distance prior.
 
         Treats each source's 3D position as drawn from
@@ -446,10 +392,6 @@ class BasePVModel(ModelBase):
         :math:`r^2`.
         """
         if not data.has_precomputed_los:
-            if Mmiss is not None:
-                raise ValueError(
-                    "Mmiss is not supported without a reconstructed density "
-                    "field.")
             return self._setup_no_recon_lp_dist_and_Vrad(
                 data, r_grid, kwargs_dist)
 
@@ -463,14 +405,6 @@ class BasePVModel(ModelBase):
 
         delta_los = data["los_delta_r_grid"]
         log_density_los = data["los_log_density_r_grid"]
-        if Mmiss is not None:
-            delta_missing, velocity_missing = self._Mmiss_los_terms(
-                data, r_grid, Mmiss)
-            rho_los = jnp.exp(log_density_los) + delta_missing[None, :, :]
-            rho_los = jnp.maximum(rho_los, 1e-8)
-            delta_los = rho_los - 1.0
-            log_density_los = jnp.log(rho_los)
-            Vrad = Vrad + velocity_missing[None, :, :]
 
         # Per-source LOS integrand: log n(r,θ_s) + log f(r) + 2 log r.
         log_n_los = lp_galaxy_bias(
@@ -486,8 +420,7 @@ class BasePVModel(ModelBase):
         # `lax.map` keeps the reduction chunked over field realisations,
         # avoiding a full-field vmap and its `(nfield, nx, ny, nz)`
         # intermediate.
-        log_N = self._compute_volume_log_N(
-            data, kwargs_dist, bias_params, Mmiss=Mmiss)
+        log_N = self._compute_volume_log_N(data, kwargs_dist, bias_params)
 
         return lp_los - log_N[:, None, None], Vrad, delta_los
 
@@ -554,6 +487,15 @@ class JointPVModel:
     shared_param_names : list of str
         Names of parameters from the ``[model.priors]`` section to be shared.
     """
+
+    evidence_default = True
+
+    def extra_plots(self, samples, fname_out):
+        return plot_pv_vext_outputs(self, samples, fname_out)
+
+    def n_data(self, model_kwargs):
+        """Total number of galaxies across the catalogues (for the BIC)."""
+        return sum(len(d) for d in model_kwargs["data"])
 
     def __init__(self, submodels, shared_param_names):
         self.submodels = submodels

@@ -30,11 +30,6 @@ galaxy_bias = "linear_from_beta"  # Ignored unless having an underlying density 
 # galaxy_bias = "linear"  # Ignored unless having an underlying density field
 quadratic_bias_delta0 = 0.0  # Expansion point for quadratic bias
 which_Vext = "constant"
-use_Mmiss = false
-Mmiss_model = "gaussian_point"
-Mmiss_sigma = 5.0  # Gaussian smoothing width, Mpc/h
-Mmiss_coordinate_frame = "galactic"  # priors use (ell, b) in degrees
-Mmiss_growth_index = 0.55
 
 # (Inhomogeneous Malmquist bias settings and extrapolation), in units of Mpc / h.
 r_limits_malmquist = "auto"
@@ -76,19 +71,6 @@ marginalize_eta = true
 field_3d_smoothing_scale = 0.0
 # Optional velocity-field smoothing. Disabled unless explicitly set non-zero.
 velocity_3d_smoothing_scale = 0.0
-
-# CSP selection integral grid settings (CSPModel)
-# LSQ data ranges: st=[0.50, 1.22], BV=[-0.05, 0.47], zcmb=[0.021, 0.126]
-r_limits_selection = "auto"
-n_r_selection = 51
-s_limits_selection = "auto"
-n_s_selection = 15
-BV_limits_selection = "auto"
-n_BV_selection = 15
-auto_limits_nsigma = 5.0  # padding for auto limits: data range +/- n*sigma
-zcmb_limits_selection = "auto"
-# Use 2-component GMM for stretch distribution (CSPModel)
-use_stretch_gmm = false
 
 [model.eta_grid]
 n_grid = 5
@@ -187,133 +169,6 @@ dist = "normal"
 loc = 3.0
 scale = 1.0
 
-###############################################################################
-#                       CSP Model Priors (CSPModel)                           #
-###############################################################################
-
-# Tripp standardization: m_true = M_B + mu(r) - alpha_tripp*(s-1) + beta_tripp*BV
-[model.priors.M_B]
-dist = "normal"
-loc = -18.5
-scale = 1.0
-
-[model.priors.alpha_tripp]
-dist = "truncated_normal"
-low = 0.0
-mean = 0.7
-scale = 0.5
-
-[model.priors.beta_tripp]
-dist = "truncated_normal"
-low = 0.0
-mean = 2.5
-scale = 1.0
-
-# Population hyperparameters for latent (s, BV)
-[model.priors.mu_s]
-dist = "normal"
-loc = 1.0
-scale = 0.2
-
-[model.priors.sigma_s]
-dist = "truncated_normal"
-low = 0.01
-mean = 0.1
-scale = 0.1
-
-[model.priors.mu_BV]
-dist = "normal"
-loc = 0.0
-scale = 0.2
-
-[model.priors.sigma_BV]
-dist = "truncated_normal"
-low = 0.01
-mean = 0.1
-scale = 0.1
-
-[model.priors.rho_pop]
-dist = "uniform"
-low = -0.999
-high = 0.999
-
-# GMM hyperparameters for stretch (when use_stretch_gmm = true)
-# mu_s2 = mu_s + delta_mu_s, so delta_mu_s > 0 ensures mu_s2 > mu_s
-[model.priors.delta_mu_s]
-dist = "truncated_normal"
-low = 0.0
-mean = 0.2
-scale = 0.2
-
-[model.priors.sigma_s2]
-dist = "truncated_normal"
-low = 0.01
-mean = 0.1
-scale = 0.1
-
-[model.priors.rho_pop2]
-dist = "uniform"
-low = -0.999
-high = 0.999
-
-[model.priors.w_s]
-dist = "uniform"
-low = 0.0
-high = 1.0
-
-# Selection parameters: m_sel = m_obs + alpha_sel*(s-1) - beta_sel*BV
-# p(S=1|obs) = Phi((m_lim - m_sel) / sigma_sel)
-[model.priors.m_lim]
-# dist = "delta"
-# value = 19.0
-dist = "uniform"
-low = 10.0
-high = 22.0
-
-[model.priors.alpha_sel]
-# dist = "delta"
-# value = 0.0
-dist = "normal"
-loc = 0.0
-scale = 1.0
-
-[model.priors.beta_sel]
-# dist = "delta"
-# value = 0.0
-dist = "normal"
-loc = 0
-scale = 1.0
-
-[model.priors.sigma_sel]
-# dist = "delta"
-# value = 0.5
-dist = "truncated_normal"
-low = 0.001
-mean = 0.5
-scale = 0.5
-
-
-## Cluster scaling relation priors
-[model.priors.CL_A]
-dist = "uniform"
-low = -10
-high = 10
-
-[model.priors.CL_B]
-dist = "uniform"
-low = -5
-high = 5
-
-[model.priors.CL_C]
-dist = "uniform"
-low = -5.0
-high = 5.0
-
-[model.priors.CL_C_intercept]
-dist = "uniform"
-low = -5.0
-high = 5.0
-
 # FP priors
 [model.priors.FP_a]
 dist = "normal"
@@ -358,28 +213,6 @@ method = "cubic"
 dist = "uniform"
 low = 1
 high = 10_000
-
-# Gaussian Mmiss component. Mmiss is in Msun/h; distance and smoothing
-# width are in the same Mpc/h-like units as the reconstruction grid.
-[model.priors.logM_miss]
-dist = "uniform"
-low = 14.0
-high = 18.0
-
-[model.priors.Mmiss_distance]
-dist = "uniform"
-low = 5.0
-high = 300.0
-
-[model.priors.Mmiss_ell]
-dist = "uniform"
-low = 0.0
-high = 360.0
-
-[model.priors.Mmiss_b]
-dist = "uniform"
-low = -20.0
-high = 20.0
 
 [model.priors.Rdust]
 # 0.19 +- 0.01 for W1. For W2 should be 0.15 +- 0.01. I take it a little bit
@@ -548,32 +381,6 @@ nsamples_subsample = "none"
 seed_subsample = 42
 
 los_file = "data/Pantheon+_Lane/los_CF4_PantheonPlusLane_<X>.hdf5"
-
-[io.CSP]
-root = "data/CSP"
-zcmb_min = "none"
-zcmb_max = "none"
-b_min = "none"
-quality_min = 0.9
-# exclude_phys = true  # default: exclude physics sample
-which_sample = "LSQ"  # "CSPI", "CSPII", or "LSQ"
-
-nsamples_subsample = "none"
-seed_subsample = 42
-
-los_file = "none"
-
-[io.Clusters]
-root = "data/Clusters"
-zcmb_max = 0.2
-which_relation = "LT"
-finite_logY = true
-convert_to_CMB_frame = true
-
-los_file = "data/Clusters/los_Clusters_<X>.hdf5"
-
-nsamples_subsample = "none"
-seed_subsample = 42
 
 [io.SDSS_FP]
 root = "data/SDSS"

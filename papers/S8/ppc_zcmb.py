@@ -1,11 +1,8 @@
 # Copyright (C) 2025 Richard Stiskalek
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
+# Licensed under the MIT License; see LICENSE in the repository root.
 """Posterior-predictive check of the CF4 TFR W1 redshift distribution.
 
-Drives ``candel.mock.gen_TFR_mock`` at the posterior means of the W1 linear-bias  # noqa: E501
+Drives ``candel_pv.gen_TFR_mock`` at the posterior means of the W1 linear-bias  # noqa: E501
 chain (2M++ density + r^2 exp[-(r/R)^q] empirical distance prior + Vext +
 sigma_v) and compares the mock zcmb distribution to the observed sample.
 
@@ -36,8 +33,8 @@ def _heavy_imports():
     import candel
     from candel.cosmo.cosmography import Distance2Distmod, Distance2Redshift
     from candel.field import name2field_loader
-    from candel.mock import gen_TFR_mock
-    from candel.pvdata import load_CF4_data
+    from candel_pv import gen_TFR_mock
+    from candel_pv import load_CF4_data
 
 
 # -----------------------------------------------------------------------------

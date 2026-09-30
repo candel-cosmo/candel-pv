@@ -1,23 +1,11 @@
 # Copyright (C) 2025 Richard Stiskalek
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-# Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Licensed under the MIT License; see LICENSE in the repository root.
 """Mock generator for TFR surveys."""
 import numpy as np
 from scipy.integrate import cumulative_simpson
 
-from ..util import (SPEED_OF_LIGHT, fprint, galactic_to_radec,
-                    galactic_to_radec_cartesian, radec_to_cartesian)
+from candel.util import (SPEED_OF_LIGHT, fprint, galactic_to_radec,
+                         galactic_to_radec_cartesian, radec_to_cartesian)
 
 
 def los_distance_cdf(r_grid, los_density, b1, R, p, n):
@@ -57,7 +45,7 @@ def gen_TFR_mock(nsamples, r_grid, Vext_mag, Vext_ell, Vext_b, sigma_v, beta,
     RA_c, dec_c = galactic_to_radec(ell, b)
 
     if field_loader is not None:
-        from ..field import interpolate_los_density_velocity
+        from candel.field import interpolate_los_density_velocity
         los_density_c, los_velocity_c = interpolate_los_density_velocity(
             field_loader, r_grid, RA_c, dec_c, verbose=False)
     else:

@@ -1,8 +1,5 @@
 # Copyright (C) 2026 Richard Stiskalek
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
+# Licensed under the MIT License; see LICENSE in the repository root.
 """Prepare and optionally run WISDOM CO-TFR redshift2real posteriors."""
 import argparse
 import csv
@@ -14,7 +11,7 @@ import matplotlib
 import numpy as np
 from astropy.coordinates import ICRS, LSRK, SkyCoord
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[4]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -221,8 +218,8 @@ def main():
         raise FileNotFoundError(f"Missing calibration file(s):\n{paths}")
 
     r = radial_grid(args.rmin, args.rmax, args.dr)
-    config = candel.load_config(ROOT / "scripts" / "runs" / "configs" /
-                                "config.toml")
+    config = candel.load_config(
+        ROOT / "packages" / "candel-pv" / "configs" / "config.toml")
     los_base = args.output_dir / args.input.name
     results = {}
     for method in args.methods:

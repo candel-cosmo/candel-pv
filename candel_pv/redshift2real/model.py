@@ -1,17 +1,5 @@
 # Copyright (C) 2025 Richard Stiskalek
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-# Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Licensed under the MIT License; see LICENSE in the repository root.
 """
 Module for mapping observed redshift to cosmological redshift given some
 calibrated density and velocity field.
@@ -26,12 +14,12 @@ from jax.scipy.stats import norm as jax_norm
 from scipy.integrate import cumulative_trapezoid, simpson
 from tqdm import trange
 
-from ..cosmo.cosmography import Distance2Redshift
-from ..model import LOSInterpolator
-from ..model.integration import ln_simpson
-from ..model.pv_utils import lp_galaxy_bias
-from ..model.utils import logmeanexp
-from ..util import SPEED_OF_LIGHT, fprint, radec_to_cartesian
+from candel.cosmo.cosmography import Distance2Redshift
+from candel.model import LOSInterpolator
+from candel.model.integration import ln_simpson
+from candel.model.pv_utils import lp_galaxy_bias
+from candel.model.utils import logmeanexp
+from candel.util import SPEED_OF_LIGHT, fprint, radec_to_cartesian
 
 ###############################################################################
 #                           Model classes                                     #

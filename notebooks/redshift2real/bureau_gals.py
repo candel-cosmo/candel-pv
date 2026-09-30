@@ -1,8 +1,5 @@
 # Copyright (C) 2026 Richard Stiskalek
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
+# Licensed under the MIT License; see LICENSE in the repository root.
 """Derive Bureau-galaxy cosmological-redshift posteriors."""
 import argparse
 import sys
@@ -15,14 +12,15 @@ import numpy as np
 from h5py import File, string_dtype
 from scipy.stats import binned_statistic
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[4]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import candel  # noqa: E402
+import candel_pv  # noqa: E402
 from candel.cosmo.cosmography import Distance2Redshift  # noqa: E402
-from candel.pvdata.los import load_los  # noqa: E402
-from scripts.preprocess.field_input_los import (  # noqa: E402
+from candel.field.los import load_los  # noqa: E402
+from candel.field.los_prep import (  # noqa: E402
     compute_los_file_from_coordinates,
     reconstruction_field_indices,
 )
@@ -175,7 +173,7 @@ def run_method(settings, catalogue, config, r, calibration_dir, input_path,
     Vext_decay_start = float(np.interp(
         Vext_decay_start_z, z_of_r, r))
 
-    model = candel.redshift2real.Redshift2Real(
+    model = candel_pv.redshift2real.Redshift2Real(
         RA=catalogue["RA"], dec=catalogue["dec"],
         zcmb=catalogue["zcmb"], e_zcmb=catalogue["e_zcmb"],
         los_r=r, los_density=los["los_density"],
@@ -503,8 +501,8 @@ def main():
         catalogue["zhelio"], catalogue["RA"], catalogue["dec"],
         catalogue["e_zhelio"])
     r = radial_grid(args.rmin, args.rmax, args.dr)
-    config = candel.load_config(ROOT / "scripts" / "runs" / "configs" /
-                                "config.toml")
+    config = candel.load_config(
+        ROOT / "packages" / "candel-pv" / "configs" / "config.toml")
 
     results = {}
     for method in args.methods:
