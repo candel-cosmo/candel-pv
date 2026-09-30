@@ -1,6 +1,6 @@
 # Copyright (C) 2025 Richard Stiskalek
 # Licensed under the MIT License; see LICENSE in the repository root.
-"""CANDEL probe for the peculiar-velocity models (no `model/which_run`)."""
+"""CANDEL probe for the peculiar-velocity models (`which_run = PV` or unset)."""
 from candel import Probe, fprint, get_nested, load_config
 from candel.field.los_prep import pv_main_los_config
 

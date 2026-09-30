@@ -20,8 +20,8 @@ density-dependent velocity dispersion).
 - Growth rate / $S_8$ (`growth_rate.py`), mocks (`mock.py`) and the
   redshift-to-real-space mapping (`redshift2real/`)
 
-Multiple catalogues can be fitted jointly with shared parameters. Runs leave
-`model.which_run` unset.
+Multiple catalogues can be fitted jointly with shared parameters. Runs set
+`model.which_run = "PV"`, or leave it unset.
 
 ## Install
 
