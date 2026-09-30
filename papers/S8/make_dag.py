@@ -6,7 +6,10 @@ Manual TikZ layout. Sized for an MNRAS two-column figure
 import os
 import subprocess
 
-OUTPUT_DIR = os.path.expanduser("~/Projects/candel-cosmo/CANDEL/plots/S8")
+# candel-cosmo/plots, beside the checkouts.
+OUTPUT_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))))), "plots", "S8")
 TEX_FILE = os.path.join(OUTPUT_DIR, "TFR_DAG.tex")
 PDF_FILE = os.path.join(OUTPUT_DIR, "TFR_DAG.pdf")
 

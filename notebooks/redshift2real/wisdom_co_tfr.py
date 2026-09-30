@@ -12,6 +12,7 @@ import numpy as np
 from astropy.coordinates import ICRS, LSRK, SkyCoord
 
 from candel.util import CANDEL_ROOT as ROOT  # noqa: E402
+from candel.util import results_path  # noqa: E402
 PACKAGE_ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -164,7 +165,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
     parser.add_argument("--output-dir", type=Path,
-                        default=ROOT / "results" / "redshift2real")
+                        default=Path(results_path("results", "redshift2real")))
     parser.add_argument("--run", action="store_true",
                         help="Run the Manticore/Carrick posteriors after prep")
     parser.add_argument("--velocity-error-kms", type=float,
@@ -172,7 +173,7 @@ def parse_args():
     parser.add_argument("--methods", nargs="+", choices=METHODS,
                         default=list(METHODS))
     parser.add_argument("--calibration-dir", type=Path,
-                        default=ROOT / "results" / "VFO")
+                        default=Path(results_path("results", "VFO")))
     parser.add_argument("--num-calibration", type=int, default=500)
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--rmin", type=float, default=0.001)

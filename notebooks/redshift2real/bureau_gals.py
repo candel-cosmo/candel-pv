@@ -13,6 +13,7 @@ from h5py import File, string_dtype
 from scipy.stats import binned_statistic
 
 from candel.util import CANDEL_ROOT as ROOT  # noqa: E402
+from candel.util import data_path, results_path  # noqa: E402
 PACKAGE_ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -34,7 +35,7 @@ METHODS = {
     "Manticore": {
         "reconstruction": "ManticoreLocalCOLA",
         "which_MAS": "PCS",
-        "calibration": ROOT / "results" / "test" / (
+        "calibration": Path(results_path("results", "test")) / (
             "precomputed_los_ManticoreLocalCOLA_CF4_W1_double_powerlaw_"
             "MAS-PCS_beta_1.0.hdf5"),
     },
@@ -463,9 +464,9 @@ def parse_args():
     parser.add_argument("--methods", nargs="+", choices=METHODS,
                         default=list(METHODS))
     parser.add_argument("--calibration-dir", type=Path,
-                        default=ROOT / "results" / "VFO")
+                        default=Path(results_path("results", "VFO")))
     parser.add_argument("--output-dir", type=Path,
-                        default=ROOT / "results" / "redshift2real")
+                        default=Path(results_path("results", "redshift2real")))
     parser.add_argument("--num-calibration", type=int, default=500)
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--rmin", type=float, default=0.001)
@@ -496,7 +497,7 @@ def main():
             "Missing calibration file(s); copy them from glamdring or pass "
             f"--calibration-dir:\n{paths}")
 
-    input_path = ROOT / "data" / "others" / "Bureau_gals.xlsx"
+    input_path = Path(data_path("data", "others", "Bureau_gals.xlsx"))
     catalogue = load_bureau_catalogue(input_path)
     catalogue["zcmb"], catalogue["e_zcmb"] = candel.heliocentric_to_cmb(
         catalogue["zhelio"], catalogue["RA"], catalogue["dec"],

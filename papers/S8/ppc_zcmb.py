@@ -20,6 +20,7 @@ def _heavy_imports():
     global np, h5py, plt, candel
     global gen_TFR_mock, name2field_loader, load_CF4_data
     global Distance2Distmod, Distance2Redshift
+    global CHAIN, DENSITY_PATH, VELOCITY_PATH, CF4_ROOT
 
     import matplotlib
     matplotlib.use("Agg")
@@ -35,6 +36,15 @@ def _heavy_imports():
     from candel.field import name2field_loader
     from candel_pv import gen_TFR_mock
     from candel_pv import load_CF4_data
+    from candel.util import data_path, results_path
+
+    CHAIN = results_path("results", "S8",
+                         "precomputed_los_Carrick2015_CF4_W1_linear.hdf5")
+    DENSITY_PATH = data_path("data", "fields",
+                             "carrick2015_twompp_density.npy")
+    VELOCITY_PATH = data_path("data", "fields",
+                              "carrick2015_twompp_velocity.npy")
+    CF4_ROOT = data_path("data", "CF4")
 
 
 # -----------------------------------------------------------------------------
@@ -42,15 +52,12 @@ def _heavy_imports():
 # -----------------------------------------------------------------------------
 
 SCRIPT_DIR = dirname(abspath(__file__))
-PLOTS_DIR = "/Users/rstiskalek/Projects/candel-cosmo/CANDEL/plots/S8"
+# candel-cosmo/plots, beside the checkouts.
+PLOTS_DIR = join(dirname(dirname(dirname(dirname(abspath(__file__))))),
+                 "plots", "S8")
 
-CHAIN = ("/Users/rstiskalek/Projects/candel-cosmo/CANDEL/results/S8/"
-         "precomputed_los_Carrick2015_CF4_W1_linear.hdf5")
-DENSITY_PATH = ("/Users/rstiskalek/Projects/candel-cosmo/CANDEL/data/fields/"
-                "carrick2015_twompp_density.npy")
-VELOCITY_PATH = ("/Users/rstiskalek/Projects/candel-cosmo/CANDEL/data/fields/"
-                 "carrick2015_twompp_velocity.npy")
-CF4_ROOT = "/Users/rstiskalek/Projects/candel-cosmo/CANDEL/data/CF4"
+# CHAIN, DENSITY_PATH, VELOCITY_PATH and CF4_ROOT resolve under
+# root_data/root_results in _heavy_imports().
 
 # CF4 W1 selection (matches the inference config).
 B_MIN = 7.5

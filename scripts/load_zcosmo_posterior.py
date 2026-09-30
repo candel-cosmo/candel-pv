@@ -13,7 +13,10 @@ text file exactly. Galaxy at row `i` in the text file corresponds to index
 import numpy as np
 from h5py import File
 
-fname = "/Users/rstiskalek/Projects/candel-cosmo/CANDEL/data/CF4_HQ/BIGSPARC_list_genform_zcosmo_posterior.hdf5"  # noqa
+from candel.util import data_path
+
+fname = data_path(
+    "data", "CF4_HQ", "BIGSPARC_list_genform_zcosmo_posterior.hdf5")
 
 with File(fname, 'r') as f:
     # Input galaxy data (1D arrays, length = number of galaxies)

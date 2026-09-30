@@ -54,6 +54,7 @@ def _heavy_imports():
     g["File"] = File
     g["candel"] = candel
     g["candel_pv"] = candel_pv
+    g["ROOT"] = candel.results_path("results", "S8")
     g["plot_corner_from_hdf5"] = plot_corner_from_hdf5
     g["posterior_agreement"] = posterior_agreement
     g["get_key_all"] = get_key_all
@@ -69,8 +70,10 @@ def _heavy_imports():
 
 
 SCRIPT_DIR = dirname(abspath(__file__))
-ROOT = "/Users/rstiskalek/Projects/candel-cosmo/CANDEL/results/S8"
-PLOTS_DIR = "/Users/rstiskalek/Projects/candel-cosmo/CANDEL/plots/S8"
+ROOT = None  # results/S8 under root_results; set by _heavy_imports()
+# candel-cosmo/plots, beside the checkouts.
+PLOTS_DIR = join(dirname(dirname(dirname(dirname(abspath(__file__))))),
+                 "plots", "S8")
 SR_CACHE_DIR = join(SCRIPT_DIR, "sr_interp_cache")
 
 # SR interp grid for sigma8_nl -> sigma8_lin. Wider than the package
