@@ -69,8 +69,8 @@ def _heavy_imports():
 
 
 SCRIPT_DIR = dirname(abspath(__file__))
-ROOT = "/Users/rstiskalek/Projects/CANDEL/results/S8"
-PLOTS_DIR = "/Users/rstiskalek/Projects/CANDEL/plots/S8"
+ROOT = "/Users/rstiskalek/Projects/candel-cosmo/CANDEL/results/S8"
+PLOTS_DIR = "/Users/rstiskalek/Projects/candel-cosmo/CANDEL/plots/S8"
 SR_CACHE_DIR = join(SCRIPT_DIR, "sr_interp_cache")
 
 # SR interp grid for sigma8_nl -> sigma8_lin. Wider than the package

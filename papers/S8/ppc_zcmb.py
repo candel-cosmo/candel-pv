@@ -42,15 +42,15 @@ def _heavy_imports():
 # -----------------------------------------------------------------------------
 
 SCRIPT_DIR = dirname(abspath(__file__))
-PLOTS_DIR = "/Users/rstiskalek/Projects/CANDEL/plots/S8"
+PLOTS_DIR = "/Users/rstiskalek/Projects/candel-cosmo/CANDEL/plots/S8"
 
-CHAIN = ("/Users/rstiskalek/Projects/CANDEL/results/S8/"
+CHAIN = ("/Users/rstiskalek/Projects/candel-cosmo/CANDEL/results/S8/"
          "precomputed_los_Carrick2015_CF4_W1_linear.hdf5")
-DENSITY_PATH = ("/Users/rstiskalek/Projects/CANDEL/data/fields/"
+DENSITY_PATH = ("/Users/rstiskalek/Projects/candel-cosmo/CANDEL/data/fields/"
                 "carrick2015_twompp_density.npy")
-VELOCITY_PATH = ("/Users/rstiskalek/Projects/CANDEL/data/fields/"
+VELOCITY_PATH = ("/Users/rstiskalek/Projects/candel-cosmo/CANDEL/data/fields/"
                  "carrick2015_twompp_velocity.npy")
-CF4_ROOT = "/Users/rstiskalek/Projects/CANDEL/data/CF4"
+CF4_ROOT = "/Users/rstiskalek/Projects/candel-cosmo/CANDEL/data/CF4"
 
 # CF4 W1 selection (matches the inference config).
 B_MIN = 7.5
